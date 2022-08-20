@@ -29,7 +29,7 @@ cc_defaults {
     static_libs: [
         "libapexutil",
         "libbase",
-        "liblog",
+        "liblog_for_runtime_apex",
         "libprotobuf-cpp-lite",
         "libtinyxml2",
         "lib_linker_config_proto_lite",
