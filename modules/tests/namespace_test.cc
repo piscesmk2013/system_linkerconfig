@@ -57,9 +57,7 @@ namespace.test_namespace.asan.permitted.paths = /data/asan/permitted_path1
 namespace.test_namespace.asan.permitted.paths += /permitted_path1
 namespace.test_namespace.asan.permitted.paths += /apex/permitted_path2
 namespace.test_namespace.links = target_namespace1,target_namespace2
-namespace.test_namespace.link.target_namespace1.shared_libs = lib1.so
-namespace.test_namespace.link.target_namespace1.shared_libs += lib2.so
-namespace.test_namespace.link.target_namespace1.shared_libs += lib3.so
+namespace.test_namespace.link.target_namespace1.shared_libs = lib1.so:lib2.so:lib3.so
 namespace.test_namespace.link.target_namespace2.allow_all_shared_libs = true
 )";
 
