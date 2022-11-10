@@ -15,7 +15,9 @@
  */
 #pragma once
 
+#include <functional>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include <linker_config.pb.h>
@@ -32,8 +34,10 @@ class BaseContext {
   BaseContext();
   virtual ~BaseContext() = default;
 
-  void AddApexModule(ApexInfo apex_module);
+  void SetApexModules(std::vector<ApexInfo>&& apex_modules);
   const std::vector<ApexInfo>& GetApexModules() const;
+  const std::unordered_map<std::string, std::reference_wrapper<const ApexInfo>>&
+  GetApexModuleMap() const;
 
   void SetStrictMode(bool strict);
   bool IsStrictMode() const;
@@ -62,6 +66,10 @@ class BaseContext {
 
   // Available APEX Modules which contains binary and/or library
   std::vector<ApexInfo> apex_modules_;
+
+  // Map of library to the APEX module
+  std::unordered_map<std::string, std::reference_wrapper<const ApexInfo>>
+      apex_module_map_;
 
   std::vector<std::string> system_provide_libs_;
   std::vector<std::string> system_require_libs_;

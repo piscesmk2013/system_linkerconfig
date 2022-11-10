@@ -201,12 +201,14 @@ Context GetContext(ProgramArgs args) {
   if (!args.is_recovery) {
     auto apex_list = android::linkerconfig::modules::ScanActiveApexes(args.root);
     if (apex_list.ok()) {
+      std::vector<ApexInfo> apex_modules;
       for (auto const& apex_item : *apex_list) {
         auto apex_info = apex_item.second;
         if (apex_info.has_bin || apex_info.has_lib) {
-          ctx.AddApexModule(std::move(apex_info));
+          apex_modules.push_back(std::move(apex_info));
         }
       }
+      ctx.SetApexModules(std::move(apex_modules));
     } else {
       LOG(ERROR) << "Failed to scan APEX modules : " << apex_list.error();
     }

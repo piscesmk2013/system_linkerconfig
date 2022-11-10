@@ -100,12 +100,7 @@ void Section::Resolve(const BaseContext& ctx,
   }
 
   // libs provided by apexes
-  std::unordered_map<std::string, ApexInfo> apex_providers;
-  for (const auto& apex : ctx.GetApexModules()) {
-    for (const auto& lib : apex.provide_libs) {
-      apex_providers[lib] = apex;
-    }
-  }
+  const auto& apex_providers = ctx.GetApexModuleMap();
 
   // add a new namespace if not found
   auto add_namespace = [&](auto name, auto builder) {
@@ -141,10 +136,11 @@ void Section::Resolve(const BaseContext& ctx,
       if (auto it = providers.find(lib); it != providers.end()) {
         ns.GetLink(it->second).AddSharedLib(lib);
       } else if (auto it = apex_providers.find(lib); it != apex_providers.end()) {
-        ns.GetLink(it->second.namespace_name).AddSharedLib(lib);
+        const auto& apex_info = it->second.get();
+        ns.GetLink(apex_info.namespace_name).AddSharedLib(lib);
         // Add a new namespace for the apex
-        add_namespace(it->second.namespace_name, [&]() {
-          return ctx.BuildApexNamespace(it->second, false);
+        add_namespace(apex_info.namespace_name, [&]() {
+          return ctx.BuildApexNamespace(apex_info, false);
         });
       } else if (auto it = lib_providers.find(lib); it != lib_providers.end()) {
         for (const auto& provider : it->second) {
