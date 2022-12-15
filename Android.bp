@@ -128,18 +128,8 @@ cc_binary {
         // we can't list it here because the exact version is unknown at build-time. It is decided
         // at runtime according to ro.vndk.version (or ro.product.vndk.version)
     ],
-    target: {
-        android: {
-            // This binary needs to be static on device, but it's also packaged
-            // as a host prebuilt in runtime-module-host-exports. On host it
-            // should link all libraries statically except libc and other system
-            // libraries, so enable this only on device.
-            static_executable: true,
-        },
-        host: {
-            stl: "c++_static",  // Link libc++ statically.
-        },
-    },
+    // Link libc++ statically to avoid libc++ in runtime apex.
+    stl: "c++_static",
 
     // Device does not boot when global ThinLTO is enabled for linkerconfig.
     // http://b/170573443
