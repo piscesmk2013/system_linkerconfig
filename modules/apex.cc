@@ -192,12 +192,25 @@ Result<std::map<std::string, ApexInfo>> ScanActiveApexes(const std::string& root
     apexes.emplace(manifest.name(), std::move(info));
   }
 
+  // After scanning apexes, we still need to augment ApexInfo based on other
+  // input files
+  // - original_path: based on /apex/apex-info-list.xml
+  // - public_libs: based on /system/etc/public.libraries.txt
+
   if (!apexes.empty()) {
     const std::string info_list_file = apex_root + "/apex-info-list.xml";
     auto info_list =
         com::android::apex::readApexInfoList(info_list_file.c_str());
     if (info_list.has_value()) {
       for (const auto& info : info_list->getApexInfo()) {
+        // skip inactive apexes
+        if (!info.getIsActive()) {
+          continue;
+        }
+        // skip "sharedlibs" apexes
+        if (info.getProvideSharedApexLibs()) {
+          continue;
+        }
         // Get the pre-installed path of the apex. Normally (i.e. in Android),
         // failing to find the pre-installed path is an assertion failure
         // because apexd demands that every apex to have a pre-installed one.
@@ -217,7 +230,7 @@ Result<std::map<std::string, ApexInfo>> ScanActiveApexes(const std::string& root
           return Error() << "Failed to determine original path for apex "
                          << info.getModuleName() << " at " << info_list_file;
         }
-        apexes[info.getModuleName()].original_path = path;
+        apexes[info.getModuleName()].original_path = std::move(path);
       }
     } else {
       return ErrnoError() << "Can't read " << info_list_file;
@@ -225,8 +238,14 @@ Result<std::map<std::string, ApexInfo>> ScanActiveApexes(const std::string& root
 
     const std::string public_libraries_file =
         root + "/system/etc/public.libraries.txt";
-    auto public_libraries = ReadPublicLibraries(public_libraries_file);
-    if (public_libraries.ok()) {
+    // Do not fail when public.libraries.txt is missing for minimal Android
+    // environment with no ART.
+    if (PathExists(public_libraries_file)) {
+      auto public_libraries = ReadPublicLibraries(public_libraries_file);
+      if (!public_libraries.ok()) {
+        return Error() << "Can't read " << public_libraries_file << ": "
+                       << public_libraries.error();
+      }
       for (auto& [name, apex] : apexes) {
         // Only system apexes can provide public libraries.
         if (!apex.InSystem()) {
@@ -234,11 +253,6 @@ Result<std::map<std::string, ApexInfo>> ScanActiveApexes(const std::string& root
         }
         apex.public_libs = Intersect(apex.provide_libs, *public_libraries);
       }
-    } else {
-      // Do not fail when public.libraries.txt is missing for minimal Android
-      // environment with no ART.
-      LOG(WARNING) << "Can't read " << public_libraries_file << ": "
-                   << public_libraries.error();
     }
   }
 

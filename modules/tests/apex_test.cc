@@ -224,3 +224,59 @@ TEST_F(ApexTest, validate_path) {
   ASSERT_TRUE(apexes.ok()) << "Valid path with ${LIB} should be accepted. : "
                            << apexes.error();
 }
+
+TEST_F(ApexTest, skip_sharedlibs_apex) {
+  PrepareApex("foo", {}, {}, {});
+  WriteFile("/apex/apex-info-list.xml", R"(<apex-info-list>
+    <apex-info moduleName="foo"
+      preinstalledModulePath="/system/apex/foo.apex"
+      modulePath="/data/apex/active/foo.apex"
+      isActive="true" />
+    <apex-info moduleName="sharedlibs"
+      preinstalledModulePath="/system/apex/sharedlibs.apex"
+      modulePath="/data/apex/active/sharedlibs.apex"
+      provideSharedApexLibs="true"
+      isActive="true" />
+  </apex-info-list>)");
+  auto apexes = ScanActiveApexes(root);
+  ASSERT_TRUE(apexes.ok()) << apexes.error();
+  ASSERT_EQ(apexes->find("sharedlibs"), apexes->end());
+}
+
+TEST_F(ApexTest, public_libraries_txt_malformed_line) {
+  PrepareApex("foo", {}, {}, {});
+  CreateApexInfoList();
+  WriteFile("/system/etc/public.libraries.txt", "foo.so blah blah blah");
+  auto apexes = ScanActiveApexes(root);
+  ASSERT_FALSE(apexes.ok());
+  ASSERT_THAT(apexes.error().message(), testing::HasSubstr("Malformed line"));
+}
+
+TEST_F(ApexTest, public_libs_with_public_libraries_txt) {
+  PrepareApex("foo", /*provide_libs=*/{"libfoo.so"}, {}, {});
+  WriteFile("/apex/apex-info-list.xml", R"(<apex-info-list>
+    <apex-info moduleName="foo"
+      preinstalledModulePath="/system/apex/foo.apex"
+      modulePath="/data/apex/active/foo.apex"
+      isActive="true" />
+  </apex-info-list>)");
+  WriteFile("/system/etc/public.libraries.txt", "libfoo.so");
+  auto apexes = ScanActiveApexes(root);
+  ASSERT_TRUE(apexes.ok()) << apexes.error();
+  ASSERT_EQ(apexes->at("foo").public_libs,
+            std::vector<std::string>{"libfoo.so"});
+}
+
+TEST_F(ApexTest, public_libs_should_be_system_apex) {
+  PrepareApex("foo", /*provide_libs=*/{"libfoo.so"}, {}, {});
+  WriteFile("/apex/apex-info-list.xml", R"(<apex-info-list>
+    <apex-info moduleName="foo"
+      preinstalledModulePath="/vendor/apex/foo.apex"
+      modulePath="/data/apex/active/foo.apex"
+      isActive="true" />
+  </apex-info-list>)");
+  WriteFile("/system/etc/public.libraries.txt", "libfoo.so");
+  auto apexes = ScanActiveApexes(root);
+  ASSERT_TRUE(apexes.ok()) << apexes.error();
+  ASSERT_EQ(apexes->at("foo").public_libs, std::vector<std::string>{});
+}
