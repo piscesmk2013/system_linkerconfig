@@ -138,7 +138,7 @@ bool ParseArgs(int argc, char* argv[], ProgramArgs* args) {
   return true;
 }
 
-void LoadVariables(ProgramArgs args) {
+void LoadVariables(const ProgramArgs& args) {
 #ifndef __ANDROID__
   if (!args.is_recovery && args.root == "") {
     PrintUsage();
@@ -190,7 +190,7 @@ Result<void> UpdatePermission([[maybe_unused]] const std::string& file_path) {
   return {};
 }
 
-Context GetContext(ProgramArgs args) {
+Context GetContext(const ProgramArgs& args) {
   Context ctx;
   if (args.strict) {
     ctx.SetStrictMode(true);
