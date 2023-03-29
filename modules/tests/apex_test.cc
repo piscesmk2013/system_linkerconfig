@@ -63,10 +63,13 @@ TEST(apex_namespace, build_namespace) {
       "namespace.foo.search.paths = /apex/com.android.foo/${LIB}\n"
       "namespace.foo.permitted.paths = /apex/com.android.foo/${LIB}\n"
       "namespace.foo.permitted.paths += /system/${LIB}\n"
+      "namespace.foo.permitted.paths += /system_ext/${LIB}\n"
       "namespace.foo.asan.search.paths = /apex/com.android.foo/${LIB}\n"
       "namespace.foo.asan.permitted.paths = /apex/com.android.foo/${LIB}\n"
       "namespace.foo.asan.permitted.paths += /data/asan/system/${LIB}\n"
-      "namespace.foo.asan.permitted.paths += /system/${LIB}\n",
+      "namespace.foo.asan.permitted.paths += /system/${LIB}\n"
+      "namespace.foo.asan.permitted.paths += /data/asan/system_ext/${LIB}\n"
+      "namespace.foo.asan.permitted.paths += /system_ext/${LIB}\n",
       writer.ToString());
 }
 
@@ -132,12 +135,15 @@ TEST(apex_namespace, extra_permitted_paths) {
       "namespace.foo.search.paths = /apex/com.android.foo/${LIB}\n"
       "namespace.foo.permitted.paths = /apex/com.android.foo/${LIB}\n"
       "namespace.foo.permitted.paths += /system/${LIB}\n"
+      "namespace.foo.permitted.paths += /system_ext/${LIB}\n"
       "namespace.foo.permitted.paths += /a\n"
       "namespace.foo.permitted.paths += /b/c\n"
       "namespace.foo.asan.search.paths = /apex/com.android.foo/${LIB}\n"
       "namespace.foo.asan.permitted.paths = /apex/com.android.foo/${LIB}\n"
       "namespace.foo.asan.permitted.paths += /data/asan/system/${LIB}\n"
       "namespace.foo.asan.permitted.paths += /system/${LIB}\n"
+      "namespace.foo.asan.permitted.paths += /data/asan/system_ext/${LIB}\n"
+      "namespace.foo.asan.permitted.paths += /system_ext/${LIB}\n"
       "namespace.foo.asan.permitted.paths += /data/asan/a\n"
       "namespace.foo.asan.permitted.paths += /a\n"
       "namespace.foo.asan.permitted.paths += /data/asan/b/c\n"

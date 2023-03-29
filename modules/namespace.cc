@@ -60,6 +60,7 @@ void InitializeWithApex(Namespace& ns, const ApexInfo& apex_info) {
   }
   ns.AddPermittedPath(apex_info.path + "/${LIB}");
   ns.AddPermittedPath("/system/${LIB}");
+  ns.AddPermittedPath("/system_ext/${LIB}");
   for (const auto& permitted_path : apex_info.permitted_paths) {
     ns.AddPermittedPath(permitted_path);
   }
