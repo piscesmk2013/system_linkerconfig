@@ -96,8 +96,15 @@ Namespace BuildVndkNamespace([[maybe_unused]] const Context& ctx,
   }
 
   // 3. vendor/lib or product/lib
-  for (const auto& lib_path : lib_paths) {
-    ns.AddSearchPath(lib_path);
+  if (is_system_or_unrestricted_section || ctx.IsApexBinaryConfig()) {
+    // Add (vendor|product)/lib for cases (vendor|product) namespace does not exist.
+    for (const auto& lib_path : lib_paths) {
+      ns.AddSearchPath(lib_path);
+    }
+  } else {
+    // To avoid double loading library issue, add link to the default
+    // namespace instead of adding search path.
+    ns.GetLink("default").AllowAllSharedLibs();
   }
 
   AddLlndkLibraries(ctx, &ns, vndk_user);
