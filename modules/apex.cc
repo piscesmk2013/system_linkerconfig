@@ -57,7 +57,7 @@ Result<std::set<std::string>> ReadPublicLibraries(const std::string& filepath) {
   std::set<std::string> sonames;
   for (auto& line : lines) {
     auto trimmed_line = android::base::Trim(line);
-    if (trimmed_line[0] == '#' || trimmed_line.empty()) {
+    if (trimmed_line.empty() || trimmed_line[0] == '#') {
       continue;
     }
     std::vector<std::string> tokens = android::base::Split(trimmed_line, " ");
