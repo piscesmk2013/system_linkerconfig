@@ -27,12 +27,10 @@ if [[ $(basename $0) == "rundiff.sh" ]]; then
     echo "You need to source and lunch before you can use this script"
     exit 1
   fi
-  $ANDROID_BUILD_TOP/build/soong/soong_ui.bash --make-mode linkerconfig conv_apex_manifest
+  $ANDROID_BUILD_TOP/build/soong/soong_ui.bash --make-mode linkerconfig conv_apex_manifest conv_linker_config
 else
-  # workaround to use host tools(conv_apex_manifest, linkerconfig) on build server
-  unzip -qqo linkerconfig_diff_test_host_tools.zip -d tools
-  export PATH=$(realpath tools)/bin:$PATH
-  export LD_LIBRARY_PATH=$(realpath tools)/lib64:$LD_LIBRARY_PATH
+  # workaround to use host tools on build server
+  export PATH=$(dirname $0):$PATH
 fi
 
 # $1: target libraries.txt file
