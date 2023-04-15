@@ -101,6 +101,8 @@ void Namespace::WriteConfig(ConfigWriter& writer) {
   writer.WriteVars(prefix + "permitted.paths", permitted_paths_);
   writer.WriteVars(prefix + "asan.search.paths", asan_search_paths_);
   writer.WriteVars(prefix + "asan.permitted.paths", asan_permitted_paths_);
+  writer.WriteVars(prefix + "hwasan.search.paths", hwasan_search_paths_);
+  writer.WriteVars(prefix + "hwasan.permitted.paths", hwasan_permitted_paths_);
   writer.WriteVars(prefix + "allowed_libs", allowed_libs_);
 
   std::vector<std::string> link_list;
@@ -125,6 +127,8 @@ void Namespace::AddSearchPath(const std::string& path) {
     asan_search_paths_.push_back(CreateAsanPath(path));
   }
   asan_search_paths_.push_back(path);
+  hwasan_search_paths_.push_back(CreateHwasanPath(path));
+  hwasan_search_paths_.push_back(path);
 }
 
 void Namespace::AddPermittedPath(const std::string& path) {
@@ -134,6 +138,8 @@ void Namespace::AddPermittedPath(const std::string& path) {
     asan_permitted_paths_.push_back(CreateAsanPath(path));
   }
   asan_permitted_paths_.push_back(path);
+  hwasan_permitted_paths_.push_back(CreateHwasanPath(path));
+  hwasan_permitted_paths_.push_back(path);
 }
 
 void Namespace::AddAllowedLib(const std::string& path) {
@@ -150,6 +156,10 @@ bool Namespace::RequiresAsanPath(const std::string& path) {
 
 const std::string Namespace::CreateAsanPath(const std::string& path) {
   return kDataAsanPath + path;
+}
+
+const std::string Namespace::CreateHwasanPath(const std::string& path) {
+  return path + "/hwasan";
 }
 
 Result<void> Namespace::VerifyContents() {
