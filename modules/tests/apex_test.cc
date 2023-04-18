@@ -306,3 +306,18 @@ TEST_F(ApexTest, public_libs_should_be_system_apex) {
   ASSERT_TRUE(apexes.ok()) << apexes.error();
   ASSERT_EQ(apexes->at("foo").public_libs, std::vector<std::string>{});
 }
+
+TEST_F(ApexTest, system_ext_can_be_linked_to_system_system_ext) {
+  PrepareApex("foo", /*provide_libs=*/{"libfoo.so"}, {}, {});
+  WriteFile("/apex/apex-info-list.xml", R"(<apex-info-list>
+    <apex-info moduleName="foo"
+      preinstalledModulePath="/system/system_ext/apex/foo.apex"
+      modulePath="/data/apex/active/foo.apex"
+      isActive="true" />
+  </apex-info-list>)");
+  WriteFile("/system/etc/public.libraries.txt", "libfoo.so");
+  auto apexes = ScanActiveApexes(root);
+  ASSERT_TRUE(apexes.ok()) << apexes.error();
+  ASSERT_EQ(apexes->at("foo").public_libs,
+            std::vector<std::string>{"libfoo.so"});
+}
