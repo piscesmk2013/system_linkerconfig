@@ -151,6 +151,12 @@ cc_binary {
     apex_available: [
         "com.android.runtime",
     ],
+
+    sanitize: {
+        // linkerconfig should be able to run at the very early stage of boot process when
+        // /data/asan is not ready. So linkerconfig can't run with ASAN.
+        address: false,
+    },
 }
 
 cc_test {
