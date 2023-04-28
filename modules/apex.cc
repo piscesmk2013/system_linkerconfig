@@ -260,22 +260,48 @@ Result<std::map<std::string, ApexInfo>> ScanActiveApexes(const std::string& root
 }
 
 bool ApexInfo::InSystem() const {
-  return StartsWith(original_path, "/system/apex/") ||
-         StartsWith(original_path, "/system_ext/apex/") ||
-         (!IsProductVndkVersionDefined() &&
-          StartsWith(original_path, "/product/apex/")) ||
-         // Guest mode Android may have system APEXes from host via block APEXes
-         StartsWith(original_path, "/dev/block/vd");
+  // /system partition
+  if (StartsWith(original_path, "/system/apex/")) {
+    return true;
+  }
+  // /system_ext partition
+  if (StartsWith(original_path, "/system_ext/apex/") ||
+      StartsWith(original_path, "/system/system_ext/apex/")) {
+    return true;
+  }
+  // /product partition if it's not separated from "system"
+  if (!IsProductVndkVersionDefined()) {
+    if (StartsWith(original_path, "/product/apex/") ||
+        StartsWith(original_path, "/system/product/apex/")) {
+      return true;
+    }
+  }
+  // Guest mode Android may have system APEXes from host via block APEXes
+  if (StartsWith(original_path, "/dev/block/vd")) {
+    return true;
+  }
+  return false;
 }
 
 bool ApexInfo::InProduct() const {
-  return IsProductVndkVersionDefined() &&
-         StartsWith(original_path, "/product/apex/");
+  // /product partition if it's separated from "system"
+  if (IsProductVndkVersionDefined()) {
+    if (StartsWith(original_path, "/product/apex/") ||
+        StartsWith(original_path, "/system/product/apex/")) {
+      return true;
+    }
+  }
+  return false;
 }
 
 bool ApexInfo::InVendor() const {
-  return StartsWith(original_path, "/vendor/apex/") ||
-         StartsWith(original_path, "/odm/apex/");
+  // /vendor partition
+  if (StartsWith(original_path, "/vendor/apex/") ||
+      StartsWith(original_path, "/system/vendor/apex/")) {
+    return true;
+  }
+  // /odm/apex is not supported yet.
+  return false;
 }
 
 }  // namespace modules

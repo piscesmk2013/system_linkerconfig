@@ -69,7 +69,15 @@ TEST(apex_namespace, build_namespace) {
       "namespace.foo.asan.permitted.paths += /data/asan/system/${LIB}\n"
       "namespace.foo.asan.permitted.paths += /system/${LIB}\n"
       "namespace.foo.asan.permitted.paths += /data/asan/system_ext/${LIB}\n"
-      "namespace.foo.asan.permitted.paths += /system_ext/${LIB}\n",
+      "namespace.foo.asan.permitted.paths += /system_ext/${LIB}\n"
+      "namespace.foo.hwasan.search.paths = /apex/com.android.foo/${LIB}/hwasan\n"
+      "namespace.foo.hwasan.search.paths += /apex/com.android.foo/${LIB}\n"
+      "namespace.foo.hwasan.permitted.paths = /apex/com.android.foo/${LIB}/hwasan\n"
+      "namespace.foo.hwasan.permitted.paths += /apex/com.android.foo/${LIB}\n"
+      "namespace.foo.hwasan.permitted.paths += /system/${LIB}/hwasan\n"
+      "namespace.foo.hwasan.permitted.paths += /system/${LIB}\n"
+      "namespace.foo.hwasan.permitted.paths += /system_ext/${LIB}/hwasan\n"
+      "namespace.foo.hwasan.permitted.paths += /system_ext/${LIB}\n",
       writer.ToString());
 }
 
@@ -147,7 +155,19 @@ TEST(apex_namespace, extra_permitted_paths) {
       "namespace.foo.asan.permitted.paths += /data/asan/a\n"
       "namespace.foo.asan.permitted.paths += /a\n"
       "namespace.foo.asan.permitted.paths += /data/asan/b/c\n"
-      "namespace.foo.asan.permitted.paths += /b/c\n",
+      "namespace.foo.asan.permitted.paths += /b/c\n"
+      "namespace.foo.hwasan.search.paths = /apex/com.android.foo/${LIB}/hwasan\n"
+      "namespace.foo.hwasan.search.paths += /apex/com.android.foo/${LIB}\n"
+      "namespace.foo.hwasan.permitted.paths = /apex/com.android.foo/${LIB}/hwasan\n"
+      "namespace.foo.hwasan.permitted.paths += /apex/com.android.foo/${LIB}\n"
+      "namespace.foo.hwasan.permitted.paths += /system/${LIB}/hwasan\n"
+      "namespace.foo.hwasan.permitted.paths += /system/${LIB}\n"
+      "namespace.foo.hwasan.permitted.paths += /system_ext/${LIB}/hwasan\n"
+      "namespace.foo.hwasan.permitted.paths += /system_ext/${LIB}\n"
+      "namespace.foo.hwasan.permitted.paths += /a/hwasan\n"
+      "namespace.foo.hwasan.permitted.paths += /a\n"
+      "namespace.foo.hwasan.permitted.paths += /b/c/hwasan\n"
+      "namespace.foo.hwasan.permitted.paths += /b/c\n",
       writer.ToString());
 }
 
@@ -285,4 +305,19 @@ TEST_F(ApexTest, public_libs_should_be_system_apex) {
   auto apexes = ScanActiveApexes(root);
   ASSERT_TRUE(apexes.ok()) << apexes.error();
   ASSERT_EQ(apexes->at("foo").public_libs, std::vector<std::string>{});
+}
+
+TEST_F(ApexTest, system_ext_can_be_linked_to_system_system_ext) {
+  PrepareApex("foo", /*provide_libs=*/{"libfoo.so"}, {}, {});
+  WriteFile("/apex/apex-info-list.xml", R"(<apex-info-list>
+    <apex-info moduleName="foo"
+      preinstalledModulePath="/system/system_ext/apex/foo.apex"
+      modulePath="/data/apex/active/foo.apex"
+      isActive="true" />
+  </apex-info-list>)");
+  WriteFile("/system/etc/public.libraries.txt", "libfoo.so");
+  auto apexes = ScanActiveApexes(root);
+  ASSERT_TRUE(apexes.ok()) << apexes.error();
+  ASSERT_EQ(apexes->at("foo").public_libs,
+            std::vector<std::string>{"libfoo.so"});
 }
