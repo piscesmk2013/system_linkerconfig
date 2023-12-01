@@ -142,12 +142,6 @@ cc_binary {
         },
     },
 
-    // Device does not boot when global ThinLTO is enabled for linkerconfig.
-    // http://b/170573443
-    lto: {
-        never: true,
-    },
-
     apex_available: [
         "com.android.runtime",
     ],
